@@ -1,0 +1,42 @@
+{
+  "request": [{
+    "name": "getArticles",
+    "uri": "http://kitty-cloud-article-provider/articles",
+    "method": "GET",
+    "params": {
+      "page": "$request.page",
+      "size": "$request.size"
+    }
+  }],
+  "response": {
+    "$code": {
+      "type": "int",
+      "path": "getArticles#code"
+    },
+    "$message": {
+      "type": "String",
+      "path": "getArticles#message"
+    },
+    "$data": {
+      "$articleResp": {
+        "type": "Entity",
+        "path": "getArticles#data",
+        "fields": ["start", "limit", "list"],
+        "$articleResp3": {
+          "type": "Entity",
+          "path": "getArticles#data",
+          "fields": ["start"]
+        },
+        "$myName": {
+          "type": "int",
+          "path": "getArticles#code"
+        }
+      },
+      "$articleResp2": {
+        "type": "Entity",
+        "path": "getArticles#data",
+        "fields": ["start"]
+      }
+    }
+  }
+}

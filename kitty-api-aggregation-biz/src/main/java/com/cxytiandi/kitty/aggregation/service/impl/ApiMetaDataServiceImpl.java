@@ -1,13 +1,21 @@
 package com.cxytiandi.kitty.aggregation.service.impl;
 
-import com.cxytiandi.kittycloud.aggregation.request.HttpAggregationRequest;
-import com.cxytiandi.kittycloud.aggregation.request.HttpRequest;
-import com.cxytiandi.kittycloud.aggregation.service.ApiMetaDataService;
+import com.cxytiandi.kitty.aggregation.dao.ApiMetaDataDao;
+import com.cxytiandi.kitty.aggregation.dataobject.ApiMetaDataDO;
+import com.cxytiandi.kitty.aggregation.request.HttpAggregationRequest;
+import com.cxytiandi.kitty.aggregation.request.HttpRequest;
+import com.cxytiandi.kitty.aggregation.service.ApiMetaDataService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * API 元数据业务接口
@@ -21,6 +29,17 @@ import java.util.List;
  */
 @Service
 public class ApiMetaDataServiceImpl implements ApiMetaDataService {
+
+    private static Map<String, ApiMetaDataDO> apiMetaDataDOCacheMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    private ApiMetaDataDao apiMetaDataDao;
+
+    @PostConstruct
+    private void init() {
+        List<ApiMetaDataDO> apiMetaDatas = apiMetaDataDao.list();
+        apiMetaDataDOCacheMap = apiMetaDatas.stream().collect(Collectors.toMap(ApiMetaDataDO::getApiName, Function.identity()));
+    }
 
     @Override
     public HttpAggregationRequest getHttpAggregationRequest(String api) {

@@ -13,6 +13,7 @@
         <module>kitty-api-aggregation-admin</module>
         <module>kitty-api-aggregation-web</module>
         <module>kitty-api-aggregation-biz</module>
+        <module>kitty-api-aggregation-examples</module>
     </modules>
 
     <properties>
@@ -39,10 +40,30 @@
                 <version>${kitty-api-aggregation.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.cxytiandi</groupId>
+                <artifactId>kitty-spring-cloud-starter-mybatis</artifactId>
+                <version>${kitty-api-aggregation.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.jd.platform</groupId>
                 <artifactId>asyncTool</artifactId>
                 <version>${asyncTool.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!-- 编译插件，指定JDK版本 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
