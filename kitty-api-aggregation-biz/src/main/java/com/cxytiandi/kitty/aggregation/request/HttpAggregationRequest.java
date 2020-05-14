@@ -20,11 +20,16 @@ public class HttpAggregationRequest {
     /**
      * 请求超时时间（毫秒）
      */
-    private long requestTimeout;
+    private long requestTimeout = 3000;
 
     /**
      * Http 请求参数信息
      */
     private List<HttpRequest> httpRequests;
+
+    /**
+     * 响应元数据信息
+     */
+    private String responseMetadata;
 
 }

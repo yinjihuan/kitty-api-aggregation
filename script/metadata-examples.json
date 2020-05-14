@@ -1,13 +1,27 @@
 {
-  "request": [{
-    "name": "getArticles",
-    "uri": "http://kitty-cloud-article-provider/articles",
-    "method": "GET",
-    "params": {
-      "page": "$request.page",
-      "size": "$request.size"
+  "request": [
+    {
+      "name": "getArticles",
+      "uri": "http://kitty-cloud-article-provider/articles",
+      "method": "GET",
+      "callType": "discover",
+      "params": {
+        "page": "$request.page",
+        "size": "$request.size"
+      }
+    },
+    {
+      "name": "getArticles2",
+      "uri": "http://kitty-cloud-article-provider/articles",
+      "method": "GET",
+      "callType": "discover",
+      "ref": "getArticles",
+      "params": {
+        "page": "$request.page",
+        "size": "$request.size"
+      }
     }
-  }],
+  ],
   "response": {
     "$code": {
       "type": "int",

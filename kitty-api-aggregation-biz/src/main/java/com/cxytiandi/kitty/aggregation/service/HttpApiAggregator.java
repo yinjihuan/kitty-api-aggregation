@@ -57,7 +57,7 @@ public class HttpApiAggregator {
         List<HttpRequest> highLevelRequests = httpRequests.stream().filter(hr -> StringUtils.isEmpty(hr.getRef())).collect(Collectors.toList());
 
         // 构建WorkerWrapper
-        List<WorkerWrapper<HttpRequest, JSONObject>> workerWrappers = buildWorkerWrapper(highLevelRequests, httpRequests, apiWorkerWrapperMapping);
+        List<WorkerWrapper<HttpRequest, JSONObject>> workerWrappers = buildWorkerWrapper(highLevelRequests, httpRequests, apiWorkerWrapperMapping, workerWrapperApiMapping);
 
         // 设置Worker参数，有的Worker参数依赖于上一个Worker的结果
         setApiWorkerWrapperParam(httpRequests, apiWorkerWrapperMapping);
@@ -70,8 +70,8 @@ public class HttpApiAggregator {
                 apiWorkResultMapping.put(api, workResult);
             });
 
-            String responseMetadata = "{\"$code\":{\"type\":\"int\",\"path\":\"getArticles#code\"},\"$message\":{\"type\":\"String\",\"path\":\"getArticles#message\"},\"$data\":{\"$articleResp\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\",\"limit\",\"list\"],\"$articleResp3\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\"]},\"$myName\":{\"type\":\"int\",\"path\":\"getArticles#code\"}},\"$articleResp2\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\"]}}}";
-            return formatResult(responseMetadata, apiWorkResultMapping);
+            //String responseMetadata = "{\"$code\":{\"type\":\"int\",\"path\":\"getArticles#code\"},\"$message\":{\"type\":\"String\",\"path\":\"getArticles#message\"},\"$data\":{\"$articleResp\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\",\"limit\",\"list\"],\"$articleResp3\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\"]},\"$myName\":{\"type\":\"int\",\"path\":\"getArticles#code\"}},\"$articleResp2\":{\"type\":\"Entity\",\"path\":\"getArticles#data\",\"fields\":[\"start\"]}}}";
+            return formatResult(httpAggregationRequest.getResponseMetadata(), apiWorkResultMapping);
 
         } catch (Exception e) {
             log.error("API聚合异常", e);
@@ -111,7 +111,7 @@ public class HttpApiAggregator {
      * @param apiWorkerWrapperMapping
      * @return
      */
-    private List<WorkerWrapper<HttpRequest, JSONObject>> buildWorkerWrapper(List<HttpRequest> highLevelRequests, List<HttpRequest> allHttpRequests,  Map<String, WorkerWrapper> apiWorkerWrapperMapping) {
+    private List<WorkerWrapper<HttpRequest, JSONObject>> buildWorkerWrapper(List<HttpRequest> highLevelRequests, List<HttpRequest> allHttpRequests,  Map<String, WorkerWrapper> apiWorkerWrapperMapping, Map<WorkerWrapper, String> workerWrapperApiMapping) {
         List<WorkerWrapper<HttpRequest, JSONObject>> list = highLevelRequests.stream().map(req -> {
             List<HttpRequest> refHttpRequests = allHttpRequests.stream().filter(h -> req.getName().equals(h.getRef())).collect(Collectors.toList());
             HttpWorker httpWorker = new HttpWorker();
@@ -120,15 +120,17 @@ public class HttpApiAggregator {
                         .worker(httpWorker)
                         .param(req)
                         .build();
+                workerWrapperApiMapping.put(build, req.getName());
                 apiWorkerWrapperMapping.put(req.getName(), build);
                 return build;
             } else {
-                List<WorkerWrapper<HttpRequest, JSONObject>> workerWrappers = buildWorkerWrapper(refHttpRequests, allHttpRequests, apiWorkerWrapperMapping);
+                List<WorkerWrapper<HttpRequest, JSONObject>> workerWrappers = buildWorkerWrapper(refHttpRequests, allHttpRequests, apiWorkerWrapperMapping, workerWrapperApiMapping);
                 WorkerWrapper<HttpRequest, JSONObject> build = new WorkerWrapper.Builder<HttpRequest, JSONObject>()
                         .worker(httpWorker)
                         .next(workerWrappers.toArray(new WorkerWrapper[workerWrappers.size()]))
                         .param(req)
                         .build();
+                workerWrapperApiMapping.put(build, req.getName());
                 apiWorkerWrapperMapping.put(req.getName(), build);
                 return build;
             }

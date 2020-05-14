@@ -1,10 +1,13 @@
 package com.cxytiandi.kitty.aggregation.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.cxytiandi.kitty.aggregation.dao.ApiMetaDataDao;
 import com.cxytiandi.kitty.aggregation.dataobject.ApiMetaDataDO;
 import com.cxytiandi.kitty.aggregation.request.HttpAggregationRequest;
 import com.cxytiandi.kitty.aggregation.request.HttpRequest;
 import com.cxytiandi.kitty.aggregation.service.ApiMetaDataService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -43,25 +46,22 @@ public class ApiMetaDataServiceImpl implements ApiMetaDataService {
 
     @Override
     public HttpAggregationRequest getHttpAggregationRequest(String api) {
+        ApiMetaDataDO apiMetaDataDO = apiMetaDataDOCacheMap.get(api);
+        if (apiMetaDataDO == null) {
+            throw new RuntimeException("API 不存在");
+        }
+
+        String metadata = apiMetaDataDO.getMetadata();
+        JSONObject metadataJson = JSONObject.parseObject(metadata);
+        JSONArray requests = metadataJson.getJSONArray("request");
+        List<HttpRequest> httpRequests = requests.stream().map(r -> {
+            JSONObject req = (JSONObject) r;
+            return req.toJavaObject(HttpRequest.class);
+        }).collect(Collectors.toList());
+
         HttpAggregationRequest httpAggregationRequest = new HttpAggregationRequest();
-
-        List<HttpRequest> httpRequests = new ArrayList<>();
-        HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setName("getArticles");
-        httpRequest.setUri("http://kitty-cloud-article-provider/articles");
-        httpRequest.setMethod(HttpMethod.GET.name());
-        httpRequest.setParams("{\"page\":\"$request.page\",\"size\":\"$request.size\"}");
-        httpRequests.add(httpRequest);
-
-        httpRequest = new HttpRequest();
-        httpRequest.setName("getUsers");
-        httpRequest.setUri("http://kitty-cloud-user-provider/users/{id}");
-        httpRequest.setMethod(HttpMethod.GET.name());
-        httpRequest.setParams("{\"id\":\"getArticles#data.articleResp.list.userId\"}");
-        httpRequest.setRef("getArticles");
-        httpRequests.add(httpRequest);
-
         httpAggregationRequest.setHttpRequests(httpRequests);
+        httpAggregationRequest.setResponseMetadata(metadataJson.getString("response"));
         return httpAggregationRequest;
     }
 
